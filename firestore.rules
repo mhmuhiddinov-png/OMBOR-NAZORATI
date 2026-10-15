@@ -1,0 +1,53 @@
+rules_version = '2';
+// Ombor nazorati — who may read and write what.
+//   Super admin  = the account stored in meta/owner (the first one that signed in)
+//   Boshqaruv    = roles/{uid}.role == "admin"
+//   Staff        = roles/{uid}.role in warehouse / production / manager  (can work)
+//   Kuzatuvchi   = roles/{uid}.role == "viewer"                           (read only)
+//   Not approved = no roles/{uid} document                                (sees only their own application)
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn()  { return request.auth != null; }
+    function uid()       { return request.auth.uid; }
+    function isOwner()   { return signedIn() && exists(/databases/$(database)/documents/meta/owner)
+                                  && get(/databases/$(database)/documents/meta/owner).data.uid == uid(); }
+    function hasRole()   { return signedIn() && exists(/databases/$(database)/documents/roles/$(uid())); }
+    function role()      { return get(/databases/$(database)/documents/roles/$(uid())).data.role; }
+    function blocked()   { return signedIn() && exists(/databases/$(database)/documents/blocked/$(uid())); }
+    function member()    { return isOwner() || hasRole(); }
+    function isAdmin()   { return isOwner() || (hasRole() && role() == "admin" && !blocked()); }
+    function worker()    { return isOwner() || (hasRole() && !blocked() && role() in ["admin", "warehouse", "production", "manager"]); }
+
+    match /meta/owner {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == uid();
+    }
+    match /staff/{id} {
+      allow read: if member() || id == uid();
+      allow create, update: if id == uid() || isOwner();
+      allow delete: if isOwner();
+    }
+    match /phones/{id} {
+      allow read: if id == uid() || isAdmin();
+      allow write: if id == uid() || isOwner();
+    }
+    match /roles/{id} {
+      allow read: if member() || id == uid();
+      // Boshqaruv assigns work roles; only the Super admin gives or takes away Boshqaruv
+      allow create, update: if isOwner() || (isAdmin() && request.resource.data.role != "admin"
+                                && (resource == null || resource.data.role != "admin"));
+      allow delete: if isOwner() || (isAdmin() && resource.data.role != "admin");
+    }
+    match /blocked/{id} {
+      allow read: if member() || id == uid();
+      allow write: if isOwner();
+    }
+    match /catalog/{id}  { allow read: if member(); allow write: if isAdmin(); }
+    match /settings/{id} { allow read: if member(); allow write: if isAdmin(); }
+    match /lots/{id}     { allow read: if member(); allow write: if worker(); }
+    match /releases/{id} { allow read: if member(); allow create, update: if worker(); allow delete: if isAdmin(); }
+    match /clients/{id}  { allow read: if member(); allow create, update: if worker(); allow delete: if isAdmin(); }
+    match /agents/{id}   { allow read: if member(); allow create, update: if worker(); allow delete: if isAdmin(); }
+    match /drivers/{id}  { allow read: if member(); allow create, update: if worker(); allow delete: if isAdmin(); }
+  }
+}
