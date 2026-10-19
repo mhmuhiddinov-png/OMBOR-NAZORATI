@@ -30,6 +30,19 @@ Bazalt paxta (EKOBAZALT) tayyor mahsulot ombori uchun veb-ilova: yorliq (QR) bo�
 2. **Xodimlar → Ma’lumotlarni ko‘chirish** → `data/claude-export.json` → Katalog, Mijozlar, Agentlar, Mashinalar → **Ko‘chirish**.
 3. **Hisobotlar → Yuk xati sozlamalari**: imzolovchilar va “Keyingi yuk xati №”.
 
+## EVEREST: EVEREST BASALT bilan ulanish
+
+- **Katalog bitta**: Firestore `catalog` — ikkala platforma shu katalogdan foydalanadi. Mahsulot qo‘shish/tahrirlash shu yerda (**Katalog** bo‘limi), EVEREST BASALT uni o‘qiydi.
+- **Standart katalog**: `docs/catalog.json` (138 mahsulot; EVEREST papkasidagi `shared/catalog.json` bilan bir xil). Katalog bo‘sh bo‘lsa — **Katalog → Standart katalogni yuklash** (faqat yo‘q mahsulotlarni qo‘shadi).
+- **«Barchasi»**: Qabul (qo‘lda qabul) va Yorliq kiritish bo‘limlarida butun mahsulot ro‘yxatini ochadi — qidiruv, PLITA / LAMEL / QADOQ bo‘yicha saralash, bosib tanlash.
+- **Yangi yorliqlar EVEREST BASALT’da** (Mahsulot rejasi → Yorliq chop etish) chop etiladi — o‘sha `lots/_labelseq` hisoblagichi, o‘sha yorliq shakli. Qadoqlar bu yerda “Qabul kutilmoqda” bo‘lib chiqadi, chop etgan xodim “… (EVEREST BASALT)” deb ko‘rinadi.
+- Bu ilovaning **Yorliq chop etish** bo‘limida faqat **qayta chop etish** qoldi. Super admin favqulodda holatda «Eski shaklni ochish» tugmasi bilan eski shaklni ochishi mumkin.
+
+## Yorliq chop etish — eski shakl va qayta chop etish (Gainscha GS-3405T, 100 × 70 mm)
+
+**Yorliq chop etish** bo‘limi: katalog jadvalidan mahsulotga yorliq sonini yozing, sana va smenani tanlang → **Ro‘yxatga olish va chop etish**. Har bir qadoqqa raqam beriladi (`YYMMDD` + kunlik tartib raqami, masalan `2610190001`), qadoq “Qabul kutilmoqda” holatida tizimga yoziladi, yorliqlar printerga chiqadi. Ombor yorliq QR’ini skanerlab qabul qiladi. Hisoblagich: Firestore `lots/_labelseq`.
+Printer sozlamasi ilovaning o‘zida («Printerni sozlash» bo‘limi): drayverda 100×70 mm qog‘oz, Chrome’da Chetlar — Yo‘q, Masshtab — 100%.
+
 ## Rollar
 
 | Rol | Kim beradi | Nima qila oladi |

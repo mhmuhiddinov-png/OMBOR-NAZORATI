@@ -81,6 +81,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 button.sm{padding:4px 9px;font-size:12px}
 button.big{padding:12px 18px;font-size:15px}
+a.btn{display:inline-block;text-decoration:none;font:500 13px var(--f-body);padding:7px 12px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--fg)}
+a.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}a.btn.big{padding:12px 18px;font-size:15px}
+.pk-list{max-height:55vh;overflow:auto;display:grid;gap:4px;margin-top:8px}
+.pk-list button{display:flex;justify-content:space-between;gap:10px;text-align:left;width:100%}
+.pk-list button .m{color:var(--mute,#888);font-size:12px;white-space:nowrap}
 button.link{border:0;background:none;padding:0;color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 12px}
 .form label,.fld{display:grid;gap:4px;font-size:12px;color:var(--muted)}
@@ -290,7 +295,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
     <p class="note">Katalogdan mahsulotni tanlang va qadoq sonini kiriting — qadoqlar to‘g‘ridan-to‘g‘ri omborga tushadi. Yorliq raqamlari bo‘lsa, ularni ham yozish mumkin; bo‘lmasa tizim ichki raqam beradi.</p>
     <div class="row"><input type="search" id="qFind" class="grow" placeholder="Saralash: PJ-100, 50, Sendvich…" aria-label="Mahsulot saralash"><select id="qDens" aria-label="Zichlik"></select></div>
     <div class="form">
-      <label style="grid-column:1/-1">Mahsulot<select id="qProd"></select></label>
+      <label style="grid-column:1/-1">Mahsulot<span class="row" style="flex-wrap:nowrap"><select id="qProd" class="grow"></select><button type="button" class="sm" data-pick="qProd">Barchasi</button></span></label>
       <label>Qadoq soni<input type="number" id="qQty" min="1" step="1" value="1" inputmode="numeric"></label>
       <label>Joy<select id="qLoc"></select></label>
       <label>Manba<select id="qSrc"><option>Boshlang‘ich qoldiq</option><option>Ishlab chiqarish</option><option>Qaytarilgan</option><option>Qayta qadoqlangan</option><option>Boshqa ombordan</option></select></label>
@@ -362,7 +367,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
       <div class="nums" id="gNumView"></div>
       <label class="fld">Yoki qadoq soni (yorliq raqamisiz)<input type="number" id="gQty" min="1" step="1" placeholder="masalan 40" inputmode="numeric" style="max-width:200px"></label>
       <div class="form">
-        <label style="grid-column:1/-1">Katalogdan tanlash<select id="gPick"><option value="">— yangi mahsulot / yorliqdan —</option></select></label>
+        <label style="grid-column:1/-1">Katalogdan tanlash<span class="row" style="flex-wrap:nowrap"><select id="gPick" class="grow"><option value="">— yangi mahsulot / yorliqdan —</option></select><button type="button" class="sm" data-pick="gPick">Barchasi</button></span></label>
         <label>Mahsulot turi<select id="gType"><option>PLITA</option><option>LAMEL</option><option>QADOQ</option></select></label>
         <label>Mahsulot nomi<input id="gName" maxlength="60" placeholder="ECOBAZALT - PJ-70" list="gNameL"><datalist id="gNameL"></datalist></label>
         <label>Uzunlik, mm<input type="number" id="gL" min="1" value="1200"></label>
@@ -392,7 +397,14 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
 <!-- YORLIQ CHOP ETISH -->
 <div class="view" id="v-lbl" hidden>
   <div class="grid2">
-    <section>
+    <section id="lMoved">
+      <h2>Yorliq chop etish <span class="cell">EVEREST BASALT platformasiga ko‘chirildi</span></h2>
+      <div class="banner info">Yangi yorliqlar endi <b>EVEREST BASALT</b> platformasida, <b>ishlab chiqarish rejasi</b> asosida chop etiladi. Raqamlar o‘sha hisoblagichdan olinadi, qadoqlar shu yerda “Qabul kutilmoqda” bo‘lib ko‘rinadi — ombor skanerlab qabul qiladi. Katalog ikkala platformada bitta.</div>
+      <div class="btns"><a class="btn primary big" id="lBasalt" target="_blank" rel="noopener">EVEREST BASALT → Yorliq chop etish</a></div>
+      <p class="note">Bu yerda faqat <b>qayta chop etish</b> qoldi (yorliq yirtilsa yoki printer tiqilsa). Super admin zarur bo‘lsa, quyidagi tugma bilan eski shaklni vaqtincha ochishi mumkin.</p>
+      <div class="btns"><button type="button" class="sm" id="lOld" hidden>Eski shaklni ochish (favqulodda)</button></div>
+    </section>
+    <section id="lNewSec" hidden>
       <div class="row sp"><h2>Yorliq chop etish <span class="cell">100 × 70 mm · QR</span></h2><button type="button" class="sm" id="lClear">Tozalash</button></div>
       <p class="note">Jadvaldan mahsulotga qadoq sonini yozing, sana va smenani tanlang. Har bir qadoqqa alohida raqam beriladi, qadoq tizimga yoziladi va yorliq printerga chiqadi. Ombor yorliqni skanerlab qabul qiladi.</p>
       <div class="form">
@@ -435,7 +447,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
 <!-- KATALOG -->
 <div class="view" id="v-cat" hidden>
   <section>
-    <div class="row sp"><h2>Mahsulotlar va turlar</h2><div class="btns"><button type="button" id="qrAll">QR kodlar (ZIP)</button><button type="button" class="primary" id="catNew">Mahsulot qo‘shish</button></div></div>
+    <div class="row sp"><h2>Mahsulotlar va turlar</h2><div class="btns"><button type="button" id="catSeed" hidden>Standart katalogni yuklash</button><button type="button" id="qrAll">QR kodlar (ZIP)</button><button type="button" class="primary" id="catNew">Mahsulot qo‘shish</button></div></div>
     <p class="note">Mahsulotlar yorliqdan avtomatik qo‘shiladi. Bu yerda zichlik, tur va minimal qoldiqni aniqlashtirish mumkin.</p>
     <div class="row"><input type="search" id="kSearch" class="grow" placeholder="Katalogdan qidirish" aria-label="Katalogdan qidirish">
       <select id="kDens" aria-label="Zichlik"></select>
@@ -1235,6 +1247,7 @@ function lblRows(){const q=($("lSearch").value||"").trim().toLowerCase();
 function lblMeta(){return {date:$("lDate").value,shift:$("lShift").value.trim().toUpperCase(),line:$("lLine").value.trim()}}
 function lblCan(){return may("produce")||may("receive")}
 function renderLbl(){
+  $("lOld").hidden=myRole()!=="super";
   const canP=may("produce"),canR=may("receive"),can=canP||canR,mo=$("lMode");
   mo.options[0].disabled=!canP;mo.options[1].disabled=!canR;
   if(mo.value==="t"&&!canP&&canR)mo.value="s";if(mo.value==="s"&&!canR&&canP)mo.value="t";
@@ -1469,16 +1482,55 @@ async function openLabel(n,hit){
   if($("uWoff"))$("uWoff").onclick=()=>reasonBox("Hisobdan chiqarish","w");
 }
 
+/* ===== EVEREST link: one catalogue for both platforms ===== */
+const BASALT_URL="https://everest-basalt.onrender.com";
+const CAT_JSON_URL="catalog.json"; // the same file is shared/catalog.json in the EVEREST folder
+async function loadStdCatalog(){
+  const r=await fetch(CAT_JSON_URL+"?v="+Date.now(),{cache:"no-store"});if(!r.ok)throw{msg:"catalog.json topilmadi"};
+  const j=await r.json();return (j.products||[]).filter(p=>p&&p.id&&p.L&&p.W&&p.H)}
+async function seedCatalog(btn){
+  if(!canManage()){toast("Faqat Super admin yoki Boshqaruv");return}
+  if(btn)btn.disabled=true;
+  try{const list=await loadStdCatalog();let add=0;
+    for(const p of list){if(D.cat[p.id])continue;const {id,...v}=p;
+      await ctx.db.doc("catalog/"+id).set({...v,minPacks:v.minPacks||0,archived:false,upd:Date.now()});add++}
+    toast(add?`${add} ta mahsulot katalogga qo‘shildi (jami ${list.length})`:"Katalog to‘liq — yangi mahsulot yo‘q")}
+  catch(e){toast(e.msg||errTxt(e))}
+  if(btn)btn.disabled=false}
+/* «Barchasi» — choose a product from the whole catalogue */
+function pickProduct(onPick,opt){
+  opt=opt||{};let ty="",q="";
+  const draw=()=>{const sb=stockBy();
+    const rows=catList().filter(p=>(!ty||p.type===ty)&&(!q||(pName(p)+" "+p.L+"x"+p.W+"x"+p.H+" "+(p.density??"")+" "+(p.gost||"")).toLowerCase().includes(q)));
+    $("pkTypes").innerHTML=[["","Barchasi"],...types().map(t=>[t,t])].map(([v,l])=>`<button type="button" data-pkt="${esc(v)}" aria-pressed="${ty===v}">${esc(l)} <span class="m">${v?catList().filter(p=>p.type===v).length:catList().length}</span></button>`).join("");
+    $("pkList").innerHTML=rows.length?rows.map(p=>`<button type="button" data-pkp="${esc(p.id)}"><span><b>${esc(p.name)}</b> · ${sizeTxt(p)} mm</span><span class="m">${p.perPack||"?"} dona/qadoq · ${p.density??"—"} kg/m³ · omborda ${f0(sb[p.id]?.packs||0)}</span></button>`).join("")
+      :`<div class="empty">${catList().length?"Mos mahsulot topilmadi.":"Katalog bo‘sh."}${!catList().length&&canManage()?' <button type="button" class="sm primary" id="pkSeed">Standart katalogni yuklash</button>':""}</div>`;
+    if($("pkSeed"))$("pkSeed").onclick=async()=>{await seedCatalog($("pkSeed"));setTimeout(draw,800)}};
+  openDlg(`<div class="dlg-h"><h2>${esc(opt.title||"Mahsulotni tanlang")}</h2><button type="button" class="sm" data-close>Yopish</button></div>
+    <input type="search" id="pkQ" placeholder="Qidirish: nom, o‘lcham, zichlik" aria-label="Qidirish" style="width:100%">
+    <div class="fchips" id="pkTypes" style="margin-top:8px"></div><div class="pk-list" id="pkList"></div>`);
+  $("pkQ").oninput=()=>{q=$("pkQ").value.trim().toLowerCase();draw()};
+  $("dlgBody").onclick=e=>{const t=e.target.closest("[data-pkt]");if(t){ty=t.dataset.pkt;draw();return}
+    const b=e.target.closest("[data-pkp]");if(b){$("dlgBody").onclick=null;closeDlg();onPick(P(b.dataset.pkp))}};
+  draw();setTimeout(()=>{try{$("pkQ").focus()}catch(e){}},50)}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-pick]");if(!b)return;const sel=b.dataset.pick;
+  pickProduct(p=>{if(!p)return;
+    if(sel==="qProd"){$("qFind").value="";$("qDens").value="";renderQ()}
+    else if(sel==="gPick")renderProd();
+    const el=$(sel);el.value=p.id;el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))})});
+$("lBasalt").href=BASALT_URL+"/yorliq";
+$("lOld").onclick=()=>{$("lNewSec").hidden=false;$("lMoved").hidden=true};
+
 /* ===== catalog ===== */
 function renderCat(){
   const adm=canManage(),sb=stockBy();
-  $("catNew").hidden=!adm;$("kNote").textContent=adm?"":"Mahsulot qo‘shish va tahrirlash faqat Super admin va Boshqaruvga ruxsat etilgan.";$("qrAll").hidden=!ctx.dl;
+  $("catNew").hidden=!adm;$("catSeed").hidden=!adm;$("kNote").textContent=adm?"":"Mahsulot qo‘shish va tahrirlash faqat Super admin va Boshqaruvga ruxsat etilgan.";$("qrAll").hidden=!ctx.dl;
   chipFilter($("kTypes"),types(),UI.kType,"data-kt");densSel("kDens");
   const q=$("kSearch").value.trim().toLowerCase(),arch=$("kArch").checked;
   const rows=catList(true).filter(p=>(arch||!p.archived)&&(!UI.kType||p.type===UI.kType)&&(!$("kDens").value||p.density==$("kDens").value)&&(!q||(pName(p)+" "+(p.gost||"")+" "+p.L+"x"+p.W+"x"+p.H).toLowerCase().includes(q)));
   $("catTbl").innerHTML=rows.length?`<thead><tr><th class="l">Mahsulot</th><th class="l">Tur</th><th>Zichlik, kg/m³</th><th class="l">O‘lcham, mm</th><th>Dona/qadoq</th><th>m³/qadoq</th><th>m²/qadoq</th><th>kg/qadoq</th><th class="l">GOST</th><th>Min. qadoq</th><th>Qoldiq</th><th class="l"></th></tr></thead><tbody>`+
     rows.map(p=>{const c=packCalc(p.L,p.W,p.H,p.perPack||1,p.density);return `<tr><td class="l">${esc(p.name||"")}${p.archived?' <span class="chip mute">arxivda</span>':""}</td><td class="l">${esc(p.type||"")}</td><td>${p.density??"—"}</td><td class="l mono">${sizeTxt(p)}</td><td>${p.perPack||"—"}</td><td>${f3(c.m3)}</td><td>${f2(c.m2)}</td><td>${c.kg?f1(c.kg):"—"}</td><td class="l">${esc(p.gost||"")}</td><td>${p.minPacks||""}</td><td>${f0(sb[p.id]?.packs||0)}</td><td class="l"><div class="btns" style="flex-wrap:nowrap"><button type="button" class="sm" data-pq="${esc(p.id)}">QR</button>${adm?`<button type="button" class="sm" data-ke="${esc(p.id)}">Tahrirlash</button>`:""}</div></td></tr>`}).join("")+`</tbody>`
-    :`<tbody><tr><td class="l"><div class="empty">${Object.keys(D.cat).length?"Mos mahsulot topilmadi.":"Katalog bo‘sh — birinchi yorliq kiritilganda mahsulot avtomatik qo‘shiladi."}</div></td></tr></tbody>`;
+    :`<tbody><tr><td class="l"><div class="empty">${Object.keys(D.cat).length?"Mos mahsulot topilmadi.":"Katalog bo‘sh — «Standart katalogni yuklash» tugmasini bosing (138 ta mahsulot, EVEREST yagona katalogi)."}</div></td></tr></tbody>`;
   const tl=types();
   $("typeList").innerHTML=tl.length?tl.map(t=>{const ps=Object.values(D.cat).filter(p=>(p.type||"BOSHQA")===t),act=ps.filter(p=>!p.archived).length,stk=ps.reduce((a,p)=>a+(sb[p.id]?.packs||0)+(sb[p.id]?.transit||0),0);
     return `<div class="li"><span class="chip ${act?"acc":"mute"}">${esc(t)}</span><div class="meta">${ps.length} ta mahsulotdan ${act} tasi faol · omborda/yo‘lda ${f0(stk)} qadoq</div>${adm?(act?`<button type="button" class="sm" data-tr="${esc(t)}" ${stk?"disabled title=\"Qoldiq bor\"":""}>Turni o‘chirish</button>`:`<button type="button" class="sm" data-tres="${esc(t)}">Tiklash</button>`):""}</div>`}).join(""):`<div class="empty">Hali tur yo‘q.</div>`;
@@ -1489,6 +1541,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-kt]");if(b
   const r=e.target.closest("[data-tres]");if(r)archiveType(r.dataset.tres,false)});
 ["kSearch","kDens","kArch"].forEach(id=>$(id).addEventListener("input",renderCat));
 $("catNew").onclick=()=>editProduct(null);
+$("catSeed").onclick=()=>seedCatalog($("catSeed"));
 document.addEventListener("click",e=>{const b=e.target.closest("[data-pq]");if(b){UI.scanFor=null;openProduct(b.dataset.pq)}});
 $("qrAll").onclick=()=>{const q=$("kSearch").value.trim().toLowerCase(),arch=$("kArch").checked;downloadAllQR(catList(true).filter(p=>(arch||!p.archived)&&(!UI.kType||p.type===UI.kType)&&(!$("kDens").value||p.density==$("kDens").value)&&(!q||(pName(p)+" "+(p.gost||"")+" "+p.L+"x"+p.W+"x"+p.H).toLowerCase().includes(q))))};
 async function archiveType(t,on){const ps=Object.values(D.cat).filter(p=>(p.type||"BOSHQA")===t&&!!p.archived!==on);
@@ -1582,7 +1635,7 @@ function renderHist(){
 
 /* ===== staff & registration ===== */
 let profCache={};
-function nameOf(uid){if(!uid)return"—";const s=D.staff[uid];if(s&&s.name)return s.name;return profCache[uid]||"Noma’lum"}
+function nameOf(uid){if(!uid)return"—";if(String(uid).startsWith("eb:"))return String(uid).slice(3)+" (EVEREST BASALT)";const s=D.staff[uid];if(s&&s.name)return s.name;return profCache[uid]||"Noma’lum"}
 async function resolveNames(){if(!ctx.user)return;const ids=new Set();Object.values(D.lots).forEach(l=>{ids.add(l.crBy);Object.values(l.items||{}).forEach(it=>{ids.add(it.mb);ids.add(it.rb)})});D.rels.forEach(r=>ids.add(r.by));Object.keys(D.staff).forEach(i=>ids.add(i));ids.delete(undefined);ids.delete(null);
   const miss=[...ids].filter(i=>!D.staff[i]?.name&&!profCache[i]);if(!miss.length)return;
   try{const ps=await ctx.user.profiles(miss);let ch=false;for(const i of miss){if(ps[i]&&ps[i].name){profCache[i]=ps[i].name;ch=true}}if(ch)renderView()}catch(e){}}
