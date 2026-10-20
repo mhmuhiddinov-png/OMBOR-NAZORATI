@@ -181,21 +181,21 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
 .lblprev .lbl{margin:0 auto;box-shadow:0 1px 5px rgba(0,0,0,.3);border-radius:1.5mm}
 #lTbl tr[data-lp]{cursor:pointer}
 #lTbl tr.on td{background:var(--accent-soft)}
-.lbl{width:100mm;height:70mm;box-sizing:border-box;padding:3.5mm 4mm;position:relative;font-family:Arial,Helvetica,sans-serif;font-weight:700;color:#000;background:#fff;overflow:hidden;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.lbl .top{display:flex;gap:2mm;height:34mm}
-.lbl .lc{width:20mm;flex:none;display:flex;flex-direction:column;gap:1.3mm}
-.lbl .ld{font-size:9pt}
-.lbl .ls{font-size:9.5pt;white-space:nowrap}
-.lbl .lo{font-size:11pt;padding-left:1.2mm}
-.lbl .lg{width:14.5mm;height:14.5mm;margin-top:auto;margin-left:.5mm;display:block}
-.lbl .lq{width:29mm;flex:none;display:flex;flex-direction:column;align-items:center}
-.lbl .lq svg{width:29mm;height:29mm;display:block}
-.lbl .ln{font-weight:400;font-size:10pt;margin-top:1.2mm;letter-spacing:.2mm;white-space:nowrap}
-.lbl .lt{flex:1;min-width:0;padding-left:1mm}
-.lbl .lnm{white-space:nowrap;overflow:hidden;margin:.3mm 0 2mm}
-.lbl .lr{font-size:8pt;line-height:1.6;white-space:nowrap;overflow:hidden}
-.lbl .lft{position:absolute;left:4mm;top:38mm;width:74mm;font-size:6pt;line-height:1.36;white-space:pre-line}
-.lbl .stz{position:absolute;right:3mm;bottom:3mm;width:16.5mm;display:block}
+.lbl{width:100mm;height:70mm;box-sizing:border-box;padding:3mm 3mm;position:relative;font-family:Arial,Helvetica,sans-serif;font-weight:700;color:#000;background:#fff;overflow:hidden;line-height:1.2;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lbl .top{display:flex;gap:1.5mm;height:34.5mm}
+.lbl .lc{width:19mm;flex:none;display:flex;flex-direction:column;gap:1.4mm}
+.lbl .ld{font-size:10.5pt;white-space:nowrap}
+.lbl .ls{white-space:nowrap}
+.lbl .lo{padding-left:1mm;white-space:nowrap}
+.lbl .lg{width:14mm;height:14mm;margin-top:auto;margin-left:.5mm;display:block}
+.lbl .lq{width:28mm;flex:none;display:flex;flex-direction:column;align-items:center}
+.lbl .lq svg{width:28mm;height:28mm;display:block}
+.lbl .ln{font-weight:700;font-size:11pt;margin-top:1.2mm;letter-spacing:.2mm;white-space:nowrap}
+.lbl .lt{flex:1;min-width:0;padding-left:.5mm}
+.lbl .lnm{white-space:nowrap;overflow:hidden;margin:0 0 1.6mm}
+.lbl .lr{line-height:1.5;white-space:nowrap;overflow:hidden}
+.lbl .lft{position:absolute;left:3mm;top:38mm;width:76.5mm;font-size:6.5pt;line-height:1.25;white-space:pre-line}
+.lbl .stz{position:absolute;right:2.5mm;bottom:3mm;width:17mm;display:block}
 #printArea{display:none}
 @media print{
   body>*:not(#printArea){display:none!important}
@@ -1217,11 +1217,15 @@ const LBL_LOGO="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoIAAAKCAQAAAABti4
 const LBL_FOOT_DEF="Если у вас возникли какие-либо возражения по поводу нашей продукции, пожалуйста, свяжитесь с нами. Если вы удовлетворены нашей продукцией, пожалуйста, поделитесь ею с друзьями.\nПроизводитель:\nООО \"EVEREST METALL GRAND\" 170203, Республика Узбекистан, Андижанская область, Асакинский район, промышленная зона Ахтачи.\ncompanyeverest8@gmail.com\nТел.: +998 95 202 00 06";
 function lblFoot(){const h=LS("ombor-lblfoot");return h===null?LBL_FOOT_DEF:h}
 const ruN=(v,d)=>(+v).toLocaleString("ru-RU",{minimumFractionDigits:d,maximumFractionDigits:d});
-function lblHtml(o){const fs=Math.max(8,Math.min(15,38/(Math.max(String(o.name||"").length,1)*0.235)));
+/* font sizes are fitted to the column width (Arial bold ≈ 0.205 mm per pt per character) */
+const fitPt=(t,mm,max,min)=>Math.max(min,Math.min(max,mm/(Math.max(String(t||"").length,1)*0.205)));
+function lblHtml(o){
   const otk=o.line?(/^(otk|отк)/i.test(o.line)?o.line:"ОТК "+o.line):"ОТК";
-  return `<div class="lbl"><div class="top"><div class="lc"><div class="ld">${esc(lDmy(o.date))}</div><div class="ls">Смена ${esc(o.shift||"—")}</div><div class="lo">${esc(otk)}</div><img class="lg" src="${LBL_LOGO}" alt=""></div>`+
+  const rows=[`Размер: ${o.L}x${o.W}x${o.H}mm`,`Количество плит: ${o.pcs} шт`].concat(o.gost?[`ГОСТ ${o.gost}`]:[]).concat([`Объём: ${ruN(o.m3,3)} м³`,`Площадь: ${ruN(o.m2,2)} м²`]);
+  const rp=Math.min(...rows.map(r=>fitPt(r,43,10.5,7))),np=fitPt(o.name,43,15,8),sp=fitPt("Смена "+(o.shift||"—"),18.5,12,8),op=fitPt(otk,18.5,13,8);
+  return `<div class="lbl"><div class="top"><div class="lc"><div class="ld">${esc(lDmy(o.date))}</div><div class="ls" style="font-size:${sp.toFixed(1)}pt">Смена ${esc(o.shift||"—")}</div><div class="lo" style="font-size:${op.toFixed(1)}pt">${esc(otk)}</div><img class="lg" src="${LBL_LOGO}" alt=""></div>`+
    `<div class="lq">${qrSvg(lblText(o))}<div class="ln">${esc(o.num)}</div></div>`+
-   `<div class="lt"><div class="lnm" style="font-size:${fs.toFixed(1)}pt">${esc(o.name||"")}</div><div class="lr">Размер: ${o.L}x${o.W}x${o.H}mm</div><div class="lr">Количество плит: ${o.pcs} шт</div>${o.gost?`<div class="lr">ГОСТ ${esc(o.gost)}</div>`:""}<div class="lr">Объём: ${ruN(o.m3,3)} м³</div><div class="lr">Площадь: ${ruN(o.m2,2)} м²</div></div></div>`+
+   `<div class="lt"><div class="lnm" style="font-size:${np.toFixed(1)}pt">${esc(o.name||"")}</div>`+rows.map(r=>`<div class="lr" style="font-size:${rp.toFixed(1)}pt">${esc(r)}</div>`).join("")+`</div></div>`+
    `<div class="lft">${esc(lblFoot())}</div><img class="stz" src="${LBL_STZ}" alt="O‘zstandart"></div>`}
 function lblFromProduct(p,n,m){const c=packCalc(p.L,p.W,p.H,p.perPack||1,p.density);return {num:n,name:p.name,L:p.L,W:p.W,H:p.H,pcs:p.perPack||1,m3:c.m3,m2:c.m2,kg:c.kg,density:p.density,gost:p.gost||"",date:m.date,shift:m.shift,line:m.line}}
 function lblFromLot(l,n){const p=P(l.cat)||{};return {num:n,name:l.name||p.name,L:l.L,W:l.W,H:l.H,pcs:l.pcs,m3:l.m3,m2:l.m2,kg:lotKg(l)||null,density:p.density??null,gost:l.gost||p.gost||"",date:l.date,shift:l.shift,line:l.line}}
