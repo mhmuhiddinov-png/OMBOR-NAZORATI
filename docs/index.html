@@ -426,6 +426,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
       <p class="note">Jadvaldagi qatorni bossangiz, o‘sha mahsulot ko‘rinadi. Haqiqiy o‘lcham: 100 × 70 mm.</p>
       <div class="lblprev" id="lPrev"></div>
       <label class="fld">Pastki matn (ishlab chiqaruvchi, manzil, telefon)<textarea id="lFoot" rows="6" maxlength="600"></textarea></label><div class="btns"><button type="button" class="sm" id="lFootReset">Asl matnni tiklash</button></div>
+      <label class="fld">Rulon va yo‘nalish<select id="lRot"><option value="90">Rulon 70 mm keng (yorliq 70×100) — 90° burib</option><option value="270">Rulon 70 mm keng (yorliq 70×100) — 270° burib</option><option value="0">Rulon 100 mm keng (yorliq 100×70) — burmasdan</option></select></label>
       <h2>Qayta chop etish</h2>
       <p class="note">Yorliq yirtilsa yoki printer tiqilib qolsa — raqam yoki oraliq bo‘yicha, yoki partiyani butunlay qayta chiqaring. Raqamlar o‘zgarmaydi.</p>
       <div class="row"><input id="lRe" class="grow mono" placeholder="2610190001 yoki 2610190001-2610190040" aria-label="Yorliq raqami"><button type="button" id="lReGo">Chop etish</button></div>
@@ -433,9 +434,9 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
       <details><summary>Printerni sozlash — Gainscha GS-3405T</summary>
         <ol class="note">
           <li>Gainscha Windows drayverini o‘rnating (printer bilan kelgan disk yoki gainscha.com → Download). Printer USB orqali ulanadi.</li>
-          <li>Windows: <b>Printerlar va skanerlar → Gainscha GS-3405T → Printing preferences</b>. <b>Page Setup → Stock → New</b>: nomi <b>100x70</b>, kenglik <b>100 mm</b>, balandlik <b>70 mm</b>. Media: <b>Labels with gaps</b> (tirqish 2–3 mm). Lenta bo‘lsa — <b>Thermal transfer</b>, lentasiz qog‘oz bo‘lsa — <b>Direct thermal</b>. Darkness 10–12, Speed 3–4. OK.</li>
+          <li>Windows: <b>Printerlar va skanerlar → Gainscha GS-3405T → Printing preferences</b>. <b>Page Setup → Stock → New</b>: nomi <b>70x100</b>, kenglik <b>70 mm</b>, balandlik <b>100 mm</b> (rulon 70 mm keng bo‘lsa; 100 mm keng rulon — 100 × 70 va «burmasdan»). Media: <b>Labels with gaps</b> (tirqish 2–3 mm). Lenta bo‘lsa — <b>Thermal transfer</b>, lentasiz qog‘oz bo‘lsa — <b>Direct thermal</b>. Darkness 10–12, Speed 3–4. OK.</li>
           <li>Kalibrlash: yorliq rulonini o‘rnatib, printer yoniq holda <b>FEED</b> tugmasini 2–3 soniya bosib turing — printer tirqishni o‘zi aniqlaydi.</li>
-          <li>Chrome chop etish oynasida: Printer — <b>Gainscha GS-3405T</b>, Qog‘oz o‘lchami — <b>100x70</b>, Chetlar — <b>Yo‘q (None)</b>, Masshtab — <b>100%</b>, <b>Kolontitullar</b> — o‘chiq, <b>Fon grafikasi</b> — yoqilgan.</li>
+          <li>Chrome chop etish oynasida: Printer — <b>Gainscha GS-3405T</b>, Qog‘oz o‘lchami — <b>70x100</b>, Joylashuv — <b>Kitob (Portrait)</b>, Chetlar — <b>Yo‘q (None)</b>, Masshtab — <b>100%</b>, <b>Kolontitullar</b> — o‘chiq, <b>Fon grafikasi</b> — yoqilgan.</li>
           <li>Avval <b>Namuna</b> tugmasi bilan bitta yorliq chiqarib tekshiring. QR’ni telefon bilan skanerlab ko‘ring.</li>
           <li>Ixtiyoriy: Gainscha’ni Windows’da standart printer qiling va Chrome yorlig‘iga <span class="mono">--kiosk-printing</span> qo‘shing — oyna chiqmasdan to‘g‘ridan-to‘g‘ri chop etadi.</li>
         </ol>
@@ -1224,10 +1225,14 @@ function lblHtml(o){const fs=Math.max(8,Math.min(15,38/(Math.max(String(o.name||
    `<div class="lft">${esc(lblFoot())}</div><img class="stz" src="${LBL_STZ}" alt="O‘zstandart"></div>`}
 function lblFromProduct(p,n,m){const c=packCalc(p.L,p.W,p.H,p.perPack||1,p.density);return {num:n,name:p.name,L:p.L,W:p.W,H:p.H,pcs:p.perPack||1,m3:c.m3,m2:c.m2,kg:c.kg,density:p.density,gost:p.gost||"",date:m.date,shift:m.shift,line:m.line}}
 function lblFromLot(l,n){const p=P(l.cat)||{};return {num:n,name:l.name||p.name,L:l.L,W:l.W,H:l.H,pcs:l.pcs,m3:l.m3,m2:l.m2,kg:lotKg(l)||null,density:p.density??null,gost:l.gost||p.gost||"",date:l.date,shift:l.shift,line:l.line}}
+/* roll orientation: the 100×70 design is rotated onto a 70 mm wide roll (labels run 70 across × 100 along the feed) */
+function lblRot(){const r=LS("ombor-lblrot");return r==="0"||r==="270"?r:"90"}
+function lblPage(){const r=lblRot();return r==="0"?{w:100,h:70,r}:{w:70,h:100,r}}
 function printLabels(list){
   if(!list.length){toast("Chop etish uchun yorliq yo‘q");return}
-  $("pageCss").textContent="@page{size:100mm 70mm;margin:0}";
-  $("printArea").innerHTML=`<style>@media print{html,body{margin:0!important;padding:0!important;background:#fff!important}#printArea .lbl{height:69.5mm;break-after:page;page-break-after:always}#printArea .lbl:last-child{break-after:auto;page-break-after:auto}}</style>`+list.map(lblHtml).join("");
+  const pg=lblPage(),tf=pg.r==="90"?"translate(70mm,0) rotate(90deg)":pg.r==="270"?"translate(0,100mm) rotate(-90deg)":"none";
+  $("pageCss").textContent=`@page{size:${pg.w}mm ${pg.h}mm;margin:0}`;
+  $("printArea").innerHTML=`<style>@media print{html,body{margin:0!important;padding:0!important;background:#fff!important}#printArea .lpg{width:${pg.w}mm;height:${pg.h-0.5}mm;overflow:hidden;position:relative;break-after:page;page-break-after:always}#printArea .lpg:last-child{break-after:auto;page-break-after:auto}#printArea .lpg .lbl{position:absolute;left:0;top:0;transform-origin:0 0;transform:${tf}}}</style>`+list.map(o=>`<div class="lpg">${lblHtml(o)}</div>`).join("");
   setTimeout(()=>{try{window.print()}catch(e){toast("Chop etib bo‘lmadi")}},150);
 }
 /* pack numbers: YYMMDD + daily sequence (2610190001…), the counter lives in lots/_labelseq and is taken in a transaction */
@@ -1254,7 +1259,7 @@ function renderLbl(){
   $("lLocL").hidden=mo.value!=="s";
   const lc=$("lLoc").value;$("lLoc").innerHTML=D.locs.map(l=>`<option>${esc(l)}</option>`).join("");if(lc&&D.locs.includes(lc))$("lLoc").value=lc;
   if(!$("lDate").value)$("lDate").value=isoDay(Date.now());
-  if(!UI.lInit){UI.lInit=true;const s=LS("ombor-lblshift");if(s&&!$("lShift").value)$("lShift").value=s;$("lFoot").value=lblFoot()}
+  if(!UI.lInit){UI.lInit=true;const s=LS("ombor-lblshift");if(s&&!$("lShift").value)$("lShift").value=s;$("lFoot").value=lblFoot();$("lRot").value=lblRot()}
   const all=Object.values({...D.recentLots,...D.lots});
   $("lShiftL").innerHTML=[...new Set(["A","B","C","D"].concat(all.map(l=>l.shift).filter(Boolean)))].map(s=>`<option value="${esc(s)}">`).join("");
   const cs=$("lShift").value.trim().toUpperCase();
@@ -1297,6 +1302,7 @@ $("lSearch").addEventListener("input",()=>{UI.lSig=null;renderLbl()});
 $("lShift").addEventListener("input",()=>{LS("ombor-lblshift",$("lShift").value.trim().toUpperCase());renderLbl()});
 $("lMode").addEventListener("input",renderLbl);
 $("lFoot").addEventListener("input",()=>{LS("ombor-lblfoot",$("lFoot").value);calcLbl()});
+$("lRot").addEventListener("change",()=>{LS("ombor-lblrot",$("lRot").value);toast("Printer drayverida qog‘oz: "+(lblPage().w)+" × "+(lblPage().h)+" mm")});
 $("lFootReset").onclick=()=>{LS("ombor-lblfoot",LBL_FOOT_DEF);$("lFoot").value=LBL_FOOT_DEF;calcLbl()};
 $("lClear").onclick=()=>{UI.lq={};UI.lSig=null;$("lSearch").value="";renderLbl()};
 document.addEventListener("click",e=>{
