@@ -503,6 +503,7 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
   <section>
     <div class="row sp"><h2>Mijozlar <span class="cell">«Мижозлар» ro‘yxati</span></h2><div class="btns"><label class="btnlike" id="clImpL">Ware House.xlsm dan to‘ldirish<input type="file" id="clFile" accept=".xlsm,.xlsx,.xls" class="sr"></label><button type="button" class="primary" id="clNew">Yangi mijoz</button></div></div>
     <p class="note" id="clMsg">Excel kitobidan «Мижозлар», «Агентлар» va «Журнал» (manzillar, haydovchilar) olinadi. Qayta yuklash mavjudlarini yangilaydi, ilovada qo‘shilganlarini o‘chirmaydi.</p>
+    <p class="note" id="clSync"></p>
     <div class="row"><input type="search" id="clSearch" class="grow" placeholder="Qidiruv: nomi, kodi, agent, manzil (kirill yoki lotin)" aria-label="Mijoz qidirish"><select id="clAgent" aria-label="Agent bo‘yicha"></select></div>
     <div class="tbl"><table id="clTbl"></table></div>
     <div class="row"><button type="button" class="sm" id="clMore" hidden>Yana ko‘rsatish</button></div>
@@ -995,7 +996,9 @@ async function learnFromRel(doc){
 
 /* --- Mijozlar view --- */
 UI.clN=150;
-function renderCli(){
+function syncNote(){const el=$("clSync");if(!el)return;const s=D.sync;
+  el.innerHTML=s&&s.at?`<span class="chip ok">Google Sheets</span> bilan bog‘langan · oxirgi yangilanish ${dt(s.at)}${s.url&&canManage()?` · <a href="${esc(s.url)}" target="_blank" rel="noopener">Jadvalni ochish</a>`:""}. Jadvalda o‘zgartirilgan mijoz va agentlar 5 daqiqa ichida shu yerga tushadi; jadvaldan o‘chirilganlari «jadvalda yo‘q» deb saqlanadi.`:""}
+function renderCli(){syncNote();
   const can=canCli(),adm=canManage(),st=relStats(),q=$("clSearch").value.trim(),ag=$("clAgent").value;
   $("clNew").disabled=$("agNew").disabled=$("drNew").disabled=!can;$("clImpL").hidden=!adm;
   const C=Object.values(D.clients),A=Object.values(D.agents);
@@ -1006,11 +1009,11 @@ function renderCli(){
   let L=cliIndex().list.filter(x=>matchQ(x.h,q)&&(!ag||(ag==="-"?!x.c.agent:x.c.agent===ag)));
   const n=L.length;L=L.slice(0,UI.clN);$("clMore").hidden=n<=UI.clN;$("clMore").textContent=`Yana ko‘rsatish (${n-UI.clN})`;
   $("clTbl").innerHTML=L.length?`<thead><tr><th class="l">Kod</th><th class="l">Mijoz</th><th class="l">Agent</th><th class="l">Bozor</th><th class="l">Manzillar</th><th>Yuk xatlari</th><th class="l">Oxirgi yuk</th><th></th></tr></thead><tbody>`+
-    L.map(({c})=>{const s=st[keyOf(c.name)];const mk=c.market||agentByName(c.agent)?.market||"";return `<tr><td class="l mono">${esc(c.code||"")}</td><td class="l" style="white-space:normal;min-width:200px">${esc(c.name)}${c.src==="app"?' <span class="chip info">yangi</span>':""}</td><td class="l">${esc(c.agent||"—")}</td><td class="l">${esc(mk)}</td><td class="l" style="white-space:normal;min-width:160px">${esc((c.addrs||[]).join("; "))}</td><td>${s?s.n:""}</td><td class="l">${s?dmy(s.last):""}</td><td>${can?`<button type="button" class="sm" data-cle="${esc(c.id)}">Tahrirlash</button>`:""}</td></tr>`}).join("")+`</tbody>`
+    L.map(({c})=>{const s=st[keyOf(c.name)];const mk=c.market||agentByName(c.agent)?.market||"";return `<tr><td class="l mono">${esc(c.code||"")}</td><td class="l" style="white-space:normal;min-width:200px">${esc(c.name)}${c.src==="app"?' <span class="chip info">yangi</span>':""}${c.inSheet===false?' <span class="chip mute" title="Google Sheets jadvalidan o‘chirilgan — eski yozuv sifatida saqlanadi">jadvalda yo‘q</span>':""}</td><td class="l">${esc(c.agent||"—")}</td><td class="l">${esc(mk)}</td><td class="l" style="white-space:normal;min-width:160px">${esc((c.addrs||[]).join("; "))}</td><td>${s?s.n:""}</td><td class="l">${s?dmy(s.last):""}</td><td>${can?`<button type="button" class="sm" data-cle="${esc(c.id)}">Tahrirlash</button>`:""}</td></tr>`}).join("")+`</tbody>`
     :`<tbody><tr><td class="l"><div class="empty">${C.length?"Mos mijoz topilmadi.":"Mijozlar ro‘yxati bo‘sh. «Ware House.xlsm dan to‘ldirish» tugmasi bilan kitobdagi ro‘yxatni yuklang yoki «Yangi mijoz» qo‘shing."}</div></td></tr></tbody>`;
   const cnt={};C.forEach(c=>{if(c.agent)cnt[keyOf(c.agent)]=(cnt[keyOf(c.agent)]||0)+1});const sale={};D.rels.forEach(r=>{if(relKind(r)==="sale"&&r.agent&&r.at>Date.now()-30*DAY)sale[keyOf(r.agent)]=(sale[keyOf(r.agent)]||0)+1});
   $("agTbl").innerHTML=A.length?`<thead><tr><th class="l">Agent (F.I.Sh.)</th><th class="l">Qisqa ism</th><th class="l">Bozor</th><th class="l">Telefon</th><th>Mijozlar</th><th>Yuk xati, 30 kun</th><th></th></tr></thead><tbody>`+
-    A.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(a=>`<tr><td class="l">${esc(a.name)}</td><td class="l">${esc(a.short||"")}</td><td class="l">${esc(a.market||"")}</td><td class="l mono">${esc(a.phone||"")}</td><td>${cnt[keyOf(a.name)]||""}</td><td>${sale[keyOf(a.name)]||""}</td><td>${can?`<button type="button" class="sm" data-age="${esc(a.id)}">Tahrirlash</button>`:""}</td></tr>`).join("")+`</tbody>`
+    A.sort((a,b)=>(a.name||"").localeCompare(b.name||"")).map(a=>`<tr><td class="l">${esc(a.name)}${a.inSheet===false?' <span class="chip mute">jadvalda yo‘q</span>':""}</td><td class="l">${esc(a.short||"")}</td><td class="l">${esc(a.market||"")}</td><td class="l mono">${esc(a.phone||"")}</td><td>${cnt[keyOf(a.name)]||""}</td><td>${sale[keyOf(a.name)]||""}</td><td>${can?`<button type="button" class="sm" data-age="${esc(a.id)}">Tahrirlash</button>`:""}</td></tr>`).join("")+`</tbody>`
     :`<tbody><tr><td class="l"><div class="empty">Agentlar yo‘q.</div></td></tr></tbody>`;
   const dq=$("drSearch").value.trim(),DR=drvList().filter(d=>matchQ(nrm([d.plate,d.drv,d.vmk].join(" ")),dq)).slice(0,100);
   $("drTbl").innerHTML=DR.length?`<thead><tr><th class="l">Davlat raqami</th><th class="l">Marka</th><th class="l">Haydovchi</th><th class="l">Telefon</th><th></th></tr></thead><tbody>`+
@@ -2051,6 +2054,7 @@ async function init(){
   sub(db.collection("roles"),s=>{D.roles={};s.docs.forEach(d=>D.roles[d.id]=d.data())},"roles");
   sub(db.collection("blocked"),s=>{D.blocked={};s.docs.forEach(d=>D.blocked[d.id]=d.data())},"blk");
   sub(db.doc("settings/main"),s=>{const v=s.exists&&s.data();D.settings=v||{};D.locs=v&&Array.isArray(v.locs)&&v.locs.length?v.locs.filter(x=>typeof x==="string"):DEF_LOCS.slice()},"set");
+  sub(db.doc("settings/sync"),s=>{D.sync=s.exists?s.data():null},"sync");
   sub(db.collection("clients").limit(1000),s=>{D.clients={};s.docs.forEach(d=>{const v=d.data();if(v&&v.name)D.clients[d.id]=Object.assign({id:d.id},v)});UI.cliIdx=null},"cli");
   sub(db.collection("agents").limit(500),s=>{D.agents={};s.docs.forEach(d=>{const v=d.data();if(v&&v.name)D.agents[d.id]=Object.assign({id:d.id},v)})},"agt");
   sub(db.collection("drivers").limit(1000),s=>{D.drivers={};s.docs.forEach(d=>{const v=d.data();if(v&&(v.plate||v.drv))D.drivers[d.id]=Object.assign({id:d.id},v)})},"drv");
