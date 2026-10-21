@@ -328,8 +328,8 @@ details summary{cursor:pointer;color:var(--accent);font-size:12px}
         <label>Chiqim turi<select id="cKind"><option value="sale">Sotuv (yuk xati)</option><option value="repack">Qayta qadoqlashga</option><option value="other">Boshqa chiqim</option></select></label>
         <label id="cWbL">Yuk xati №<input type="number" id="cWb" min="1" step="1" inputmode="numeric"></label>
         <label class="pkl" style="grid-column:span 2">Buyurtmachi (mijoz) <span class="note" id="cCustTag"></span><input id="cCust" maxlength="140" placeholder="Nomi yoki kodidan bir qismi (kirill/lotin)" autocomplete="off"></label>
-        <label class="pkl">Agent (sotuvchi)<input id="cAgent" maxlength="80" placeholder="Ro‘yxatdan tanlang" autocomplete="off"></label>
-        <label class="pkl">Yukni qabul qiluvchi (manzil)<input id="cRcv" maxlength="120" placeholder="Andijon shahar" autocomplete="off"></label>
+        <label class="pkl">Agent (sotuvchi) *<input id="cAgent" maxlength="80" placeholder="Ro‘yxatdan tanlang" autocomplete="off"></label>
+        <label class="pkl">Yukni qabul qiluvchi (manzil) *<input id="cRcv" maxlength="120" placeholder="Andijon shahar" autocomplete="off"></label>
         <label class="pkl">Davlat raqami<input id="cVeh" maxlength="30" placeholder="60 S 528 CB" autocomplete="off"></label>
         <label>Avtomashina markasi<input id="cVmk" maxlength="40" placeholder="KIA BONGO" list="dlVmk" autocomplete="off"></label>
         <label>Tirkama<input id="cTrl" maxlength="30"></label>
@@ -870,7 +870,14 @@ document.addEventListener("click",e=>{
 $("cConfirm").onclick=async()=>{
   if(!UI.cart.length||UI.busy)return;
   const kind=$("cKind").value,cust=$("cCust").value.trim(),wbn=parseInt($("cWb").value,10)||(kind==="sale"?nextWb():0);
+  let agentName=$("cAgent").value.trim();const rcv=$("cRcv").value.trim(); // read now: autofill may change the fields while lots are checked
   if(kind==="sale"){if(!cust){toast("Buyurtmachini kiriting");$("cCust").focus();return}
+    // EVEREST BASALT → Savdo: the agent report and the region report are built from every sale's agent and address
+    if(!agentName){toast("Agentni tanlang — agent bo‘yicha savdo hisoboti uchun majburiy");$("cAgent").focus();return}
+    const ag=Object.values(D.agents).find(a=>[a.name,a.short].some(x=>x&&String(x).trim().toLowerCase()===agentName.toLowerCase()));
+    if(!ag){toast("«"+agentName+"» agentlar ro‘yxatida yo‘q — ro‘yxatdan tanlang (Mijozlar → Agentlar)");$("cAgent").focus();return}
+    agentName=ag.name;
+    if(!rcv){toast("Yukni qabul qiluvchi manzilini kiriting — hudud hisoboti shu manzildan olinadi");$("cRcv").focus();return}
     if(!(wbn>0)){toast("Yuk xati raqamini kiriting");$("cWb").focus();return}
     if(D.rels.some(r=>relKind(r)==="sale"&&+r.wb===wbn&&new Date(r.at).getFullYear()===new Date().getFullYear())){toast("№ "+wbn+" yuk xati bu yil allaqachon bor — boshqa raqam yozing");$("cWb").focus();return}}
   UI.busy=true;$("cConfirm").disabled=true;$("cartMsg").textContent="Yorliqlar tekshirilmoqda…";
@@ -884,7 +891,7 @@ $("cConfirm").onclick=async()=>{
     for(const [lid,ns] of Object.entries(g)){const patch={};ns.forEach(n=>patch[n]={s:"o",ro:no,ra:now,rb2:ctx.uid});await setItems(lid,patch);
       const l=fresh[lid],kg=lotKg(l)*ns.length;lines.push({lot:lid,cat:l.cat,n:ns.length,pcs:l.pcs*ns.length,m3:+(l.m3*ns.length).toFixed(4),m2:+(l.m2*ns.length).toFixed(3),kg:+kg.toFixed(1),date:l.date||"",shift:l.shift||"",labels:ns});
       t.packs+=ns.length;t.pcs+=l.pcs*ns.length;t.m3+=l.m3*ns.length;t.m2+=l.m2*ns.length;t.kg+=kg}
-    const doc={no,at:now,by:ctx.uid,kind,wb:kind==="sale"?wbn:null,cust,agent:$("cAgent").value.trim(),rcv:$("cRcv").value.trim(),veh:$("cVeh").value.trim(),vmk:$("cVmk").value.trim(),trl:$("cTrl").value.trim(),drv:$("cDrv").value.trim(),dph:$("cDph").value.trim(),pas:$("cPas").value.trim(),fare:+$("cFare").value||0,doc:$("cDoc").value.trim(),note:$("cNote").value.trim(),lines,labels:UI.cart.slice(),tot:{packs:t.packs,pcs:t.pcs,m3:+t.m3.toFixed(3),m2:+t.m2.toFixed(2),kg:+t.kg.toFixed(1)}};
+    const doc={no,at:now,by:ctx.uid,kind,wb:kind==="sale"?wbn:null,cust,agent:agentName,rcv,veh:$("cVeh").value.trim(),vmk:$("cVmk").value.trim(),trl:$("cTrl").value.trim(),drv:$("cDrv").value.trim(),dph:$("cDph").value.trim(),pas:$("cPas").value.trim(),fare:+$("cFare").value||0,doc:$("cDoc").value.trim(),note:$("cNote").value.trim(),lines,labels:UI.cart.slice(),tot:{packs:t.packs,pcs:t.pcs,m3:+t.m3.toFixed(3),m2:+t.m2.toFixed(2),kg:+t.kg.toFixed(1)}};
     await ctx.db.doc("releases/"+no).set(doc);learnFromRel(doc);
     for(const lid of Object.keys(g))await maybeClose(lid);
     UI.cart=[];REL_TXT.forEach(id=>$(id).value="");$("cWb").value="";custTag();$("cartMsg").textContent="";UI.lastRel=doc;
